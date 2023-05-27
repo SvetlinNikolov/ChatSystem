@@ -10,9 +10,4 @@
     <PackageReference Include="AutoMapper" Version="12.0.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Data\ChatSystem.Data\ChatSystem.Data.csproj" />
-    <ProjectReference Include="..\..\Web\ChatSystem.ViewModels\ChatSystem.ViewModels.csproj" />
-  </ItemGroup>
-
 </Project>

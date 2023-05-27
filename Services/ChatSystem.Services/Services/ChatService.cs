@@ -1,9 +1,10 @@
 ﻿using ChatSystem.Data.Models;
 using ChatSystem.Services.Repositories.Contracts;
+using ChatSystem.Services.Services.Contracts;
 
 namespace ChatSystem.Services.Services
 {
-    public class ChatService
+    public class ChatService : IChatService
     {
         private readonly IChatRepository _chatRepository;
 
@@ -26,16 +27,5 @@ namespace ChatSystem.Services.Services
         {
             await _chatRepository.AddAsync(message);
         }
-
-        public async Task UpdateChatMessageAsync(ChatMessage message)
-        {
-            await _chatRepository.UpdateAsync(message);
-        }
-
-        public async Task DeleteChatMessageAsync(ChatMessage message)
-        {
-            await _chatRepository.DeleteAsync(message);
-        }
     }
-
 }
