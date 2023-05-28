@@ -1,28 +1,62 @@
 ﻿using AutoMapper;
-using ChatSystem.Services.Repositories.Contracts;
+using ChatSystem.Data;
+using ChatSystem.Data.Models;
 using ChatSystem.Services.Services.Contracts;
 using ChatSystem.ViewModels.Users;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ChatSystem.Services.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly ChatDbContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserService(
-            IUserRepository userRepository,
-            IMapper mapper)
+           ChatDbContext dbContext,
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
-            _userRepository = userRepository;
+            _dbContext = dbContext;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<ChatUserViewModel>> GetAllUsersAsync()
         {
-            var users = await _userRepository.GetAllAsync();
+            var currentUserId = GetCurrentUserId();
+            var users = await _dbContext.ChatUsers.ToListAsync();
 
-            return _mapper.Map<IEnumerable<ChatUserViewModel>>(users);
+            if (users != null && users.Any())
+            {
+                var filteredUsers = users.Where(u => u.Id != currentUserId);
+
+                return _mapper.Map<IEnumerable<ChatUserViewModel>>(filteredUsers);
+            }
+
+            return Enumerable.Empty<ChatUserViewModel>();
+        }
+
+        public async Task<ChatUserViewModel> GetByUsername(string username)
+        {
+            var user = await _dbContext.ChatUsers.FirstOrDefaultAsync(x => x.UserName == username);
+
+            if (user != null)
+            {
+                return _mapper.Map<ChatUserViewModel>(user);
+            }
+
+            return default(ChatUserViewModel);
+        }
+
+        //TODO place this in the user service
+        public string GetCurrentUserId()
+        {
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return userId;
         }
     }
 }

@@ -1,16 +1,19 @@
 using ChatSystem.Data;
 using ChatSystem.Data.Models;
+using ChatSystem.Services.Services;
+using ChatSystem.Services.Services.Contracts;
 using ChatSystem.Web.Hubs;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services to the container.
 builder.Services.AddRazorPages();
+
 builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<ChatDbContext>(options =>
@@ -31,6 +34,11 @@ builder.Services.AddIdentity<ChatUser, IdentityRole>(options =>
 
 builder.Services.AddAutoMapper(typeof(Program));
 
+//Services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -47,13 +55,14 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthorization(); 
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Chat}/{action=Index}/{id?}");
 
 app.MapRazorPages();
+
 app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

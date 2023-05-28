@@ -162,9 +162,8 @@ namespace ChatSystem.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    User1Id = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    User2Id = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    User1Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    User2Id = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,12 +172,14 @@ namespace ChatSystem.Data.Migrations
                         name: "FK_ChatConversations_AspNetUsers_User1Id",
                         column: x => x.User1Id,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ChatConversations_AspNetUsers_User2Id",
                         column: x => x.User2Id,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -189,17 +190,18 @@ namespace ChatSystem.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ConversationId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ConversationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChatMessages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ChatMessages_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_ChatMessages_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChatMessages_ChatConversations_ConversationId",
                         column: x => x.ConversationId,
@@ -263,9 +265,9 @@ namespace ChatSystem.Data.Migrations
                 column: "ConversationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatMessages_UserId",
+                name: "IX_ChatMessages_SenderId",
                 table: "ChatMessages",
-                column: "UserId");
+                column: "SenderId");
         }
 
         /// <inheritdoc />

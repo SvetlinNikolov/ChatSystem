@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatSystem.Data.Migrations
 {
     [DbContext(typeof(ChatDbContext))]
-    [Migration("20230526180126_Initial")]
+    [Migration("20230528160616_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -33,14 +33,12 @@ namespace ChatSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("User1Id")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("User2Id")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -67,17 +65,18 @@ namespace ChatSystem.Data.Migrations
                     b.Property<int>("ConversationId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("SenderId");
 
                     b.ToTable("ChatMessages");
                 });
@@ -284,11 +283,15 @@ namespace ChatSystem.Data.Migrations
                 {
                     b.HasOne("ChatSystem.Data.Models.ChatUser", "User1")
                         .WithMany()
-                        .HasForeignKey("User1Id");
+                        .HasForeignKey("User1Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ChatSystem.Data.Models.ChatUser", "User2")
                         .WithMany()
-                        .HasForeignKey("User2Id");
+                        .HasForeignKey("User2Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("User1");
 
@@ -303,13 +306,15 @@ namespace ChatSystem.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChatSystem.Data.Models.ChatUser", "User")
+                    b.HasOne("ChatSystem.Data.Models.ChatUser", "Sender")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Conversation");
 
-                    b.Navigation("User");
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

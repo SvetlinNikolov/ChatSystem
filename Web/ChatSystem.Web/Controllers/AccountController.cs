@@ -1,4 +1,5 @@
 ﻿using ChatSystem.Data.Models;
+using ChatSystem.Web.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(nameof(ChatController.Index), "Chat");
             }
             else
             {
@@ -60,7 +61,7 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(nameof(ChatController.Index), "Chat");
             }
             else
             {

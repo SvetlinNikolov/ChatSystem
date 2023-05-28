@@ -6,5 +6,9 @@ namespace ChatSystem.Services.Services.Contracts
     public interface IUserService
     {
         Task<IEnumerable<ChatUserViewModel>> GetAllUsersAsync();
+
+        Task<ChatUserViewModel> GetByUsername(string username);
+
+        string GetCurrentUserId();
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace ChatSystem.Data
 {
@@ -10,6 +11,25 @@ namespace ChatSystem.Data
         public ChatDbContext(DbContextOptions<ChatDbContext> options)
             : base(options)
         {
+
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<ChatConversation>()
+                .HasOne(c => c.User1)
+                .WithMany()
+                .HasForeignKey(c => c.User1Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ChatConversation>()
+                .HasOne(c => c.User2)
+                .WithMany()
+                .HasForeignKey(c => c.User2Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            base.OnModelCreating(builder);
         }
 
         public DbSet<ChatConversation> ChatConversations { get; set; }
