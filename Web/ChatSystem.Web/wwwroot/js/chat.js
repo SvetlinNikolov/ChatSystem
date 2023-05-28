@@ -24,7 +24,7 @@
             // Append the message to the chat box
             $(".chat-box").append(messageItem);
 
-            // Scroll to the bottom of the chat box 
+            // Scroll to the bottom of the chat box
             $(".chatContainerScroll").scrollTop($(".chatContainerScroll")[0].scrollHeight);
         });
 
