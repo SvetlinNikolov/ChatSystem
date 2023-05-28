@@ -52,7 +52,6 @@ namespace ChatSystem.Services.Services
             return default(ChatUserViewModel);
         }
 
-        //TODO place this in the user service
         public string GetCurrentUserId()
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
