@@ -2,11 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace ChatSystem.Data
 {
-    public class ChatDbContext : IdentityDbContext<ChatUser, IdentityRole, string>
+    public class ChatDbContext : IdentityDbContext<ChatUser, IdentityRole<int>, int>
     {
         public ChatDbContext(DbContextOptions<ChatDbContext> options)
             : base(options)
@@ -27,7 +26,6 @@ namespace ChatSystem.Data
                 .WithMany()
                 .HasForeignKey(c => c.User2Id)
                 .OnDelete(DeleteBehavior.Restrict);
-
 
             base.OnModelCreating(builder);
         }

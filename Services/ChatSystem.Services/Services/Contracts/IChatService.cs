@@ -7,6 +7,6 @@ namespace ChatSystem.Services.Services.Contracts
     {
         Task<ChatMessage> GetChatMessageByIdAsync(int messageId);
         Task<IEnumerable<ChatMessage>> GetAllChatMessagesAsync();
-        Task AddChatMessageAsync(string senderId, int conversationId, string messageContent);
+        Task AddChatMessageAsync(int senderId, int conversationId, string messageContent);
     }
 }

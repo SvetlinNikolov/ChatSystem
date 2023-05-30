@@ -24,9 +24,9 @@ namespace ChatSystem.Services.Services
             return await _dbContext.ChatMessages.ToListAsync();
         }
 
-        public async Task AddChatMessageAsync(string senderId, int conversationId, string messageContent)
+        public async Task AddChatMessageAsync(int senderId, int conversationId, string messageContent)
         {
-            if (string.IsNullOrEmpty(senderId))
+            if (senderId == default(int))
             {
                 throw new ArgumentException($"'{nameof(senderId)}' cannot be null or empty.", nameof(senderId));
             }

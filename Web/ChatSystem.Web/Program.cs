@@ -21,7 +21,7 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-builder.Services.AddIdentity<ChatUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ChatUser, IdentityRole<int>>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.Password.RequireDigit = false;
@@ -31,6 +31,9 @@ builder.Services.AddIdentity<ChatUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ChatDbContext>()
 .AddDefaultTokenProviders();
+
+
+
 
 builder.Services.AddAutoMapper(typeof(Program));
 

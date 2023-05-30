@@ -10,7 +10,7 @@
 
         public ChatUser Sender { get; set; }
 
-        public string SenderId { get; set; }
+        public int SenderId { get; set; }
 
         public int ConversationId { get; set; }
 

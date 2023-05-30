@@ -21,7 +21,7 @@ namespace ChatSystem.Services.Services
             _chatService = chatService;
         }
 
-        public async Task<int> CreateConversationAsync(string firstUserId, string secondUserId)
+        public async Task<int> CreateConversationAsync(int firstUserId, int secondUserId)
         {
             var conversation = await GetConversationAsync(firstUserId, secondUserId);
 
@@ -42,7 +42,7 @@ namespace ChatSystem.Services.Services
             return conversation.Id;
         }
 
-        public async Task<ChatConversation> GetConversationAsync(string firstUserId, string secondUserId)
+        public async Task<ChatConversation> GetConversationAsync(int firstUserId, int secondUserId)
         {
             var conversation = await _dbContext.ChatConversations
                 .FirstOrDefaultAsync(c => (c.User1.Id == firstUserId && c.User2.Id == secondUserId) ||

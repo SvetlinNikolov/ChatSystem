@@ -9,6 +9,8 @@ namespace ChatSystem.Services.Services.Contracts
 
         Task<ChatUserViewModel> GetByUsername(string username);
 
-        string GetCurrentUserId();
+        int GetCurrentUserId();
+
+        string GetCurrentUserUsername();
     }
 }

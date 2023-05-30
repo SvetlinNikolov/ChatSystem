@@ -16,31 +16,33 @@ namespace ChatSystem.Web.Hubs
     {
         private readonly IConversationService _conversationService;
         private readonly IChatService _chatService;
+        private readonly IUserService _userService;
         private readonly ILogger _logger;
         private static readonly ConcurrentDictionary<string, List<string>> GroupConnections = new ConcurrentDictionary<string, List<string>>();
 
-        public ChatHub(IConversationService conversationService, IChatService chatService, ILogger<ChatHub> logger)
+        public ChatHub(IConversationService conversationService, IChatService chatService, IUserService userService, ILogger<ChatHub> logger)
         {
             _conversationService = conversationService;
             _chatService = chatService;
+            _userService = userService;
             _logger = logger;
         }
 
-        public async Task SendMessage(string recipientId, string message)
+        public async Task SendMessage(int recipientId, string message)
         {
-            if (string.IsNullOrEmpty(recipientId) || string.IsNullOrEmpty(message))
+            if (recipientId == default(int) || string.IsNullOrEmpty(message))
             {
                 // Handle invalid input
                 await Clients.Caller.SendAsync("Invalid Input");
                 return;
             }
 
-            string senderUserId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string senderUsername = Context.User.Identity.Name;
+            var senderUserId = _userService.GetCurrentUserId();
+            var senderUsername = _userService.GetCurrentUserUsername();
 
             try
             {
-                var recipientConnectionIds = GetRecipientConnectionIds(recipientId);
+                var recipientConnectionIds = GetRecipientConnectionIds(recipientId.ToString());
 
                 if (recipientConnectionIds.Any())
                 {

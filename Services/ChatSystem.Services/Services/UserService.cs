@@ -52,10 +52,21 @@ namespace ChatSystem.Services.Services
             return default(ChatUserViewModel);
         }
 
-        public string GetCurrentUserId()
+        public int GetCurrentUserId()
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return userId;
+            var userIdString = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (int.TryParse(userIdString, out int userId))
+            {
+                return userId;
+            }
+
+            return default(int);
+        }
+
+        public string GetCurrentUserUsername()
+        {
+            return _httpContextAccessor.HttpContext.User.Identity.Name;
         }
     }
 }
