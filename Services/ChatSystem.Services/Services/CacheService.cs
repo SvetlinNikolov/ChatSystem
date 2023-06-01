@@ -61,17 +61,18 @@
             var collection = this.memoryCache.GetOrCreate(key, cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = CACHING_TIME;
-                return new ConcurrentDictionary<string, List<T>>();
+                return new ConcurrentDictionary<string, IEnumerable<T>>();
             });
 
-            if (collection.TryGetValue(key, out var list))
+            if (collection.TryGetValue(key, out var enumerable))
             {
-                list.Add(value);
+                enumerable = enumerable.Append(value);
+                collection[key] = enumerable;
             }
             else
             {
-                list = new List<T> { value };
-                collection.TryAdd(key, list);
+                enumerable = new List<T> { value };
+                collection.TryAdd(key, enumerable);
             }
         }
     }
