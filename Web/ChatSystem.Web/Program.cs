@@ -1,10 +1,13 @@
 using ChatSystem.Data;
 using ChatSystem.Data.Models;
+using ChatSystem.Services.Factories;
+using ChatSystem.Services.Factories.Contracts;
 using ChatSystem.Services.Services;
 using ChatSystem.Services.Services.Contracts;
 using ChatSystem.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ShishaProject.Common.Caching;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,15 +35,17 @@ builder.Services.AddIdentity<ChatUser, IdentityRole<int>>(options =>
 .AddEntityFrameworkStores<ChatDbContext>()
 .AddDefaultTokenProviders();
 
-
-
-
 builder.Services.AddAutoMapper(typeof(Program));
 
 //Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
+
+//Jobs
+builder.Services.AddHostedService<SaveCachedChatMessagesToDbJob>();
+
 
 var app = builder.Build();
 
@@ -58,7 +63,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseAuthorization(); 
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

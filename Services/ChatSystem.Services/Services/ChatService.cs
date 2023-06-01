@@ -1,5 +1,6 @@
 ﻿using ChatSystem.Data;
 using ChatSystem.Data.Models;
+using ChatSystem.Services.Constants;
 using ChatSystem.Services.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,12 @@ namespace ChatSystem.Services.Services
     public class ChatService : IChatService
     {
         private readonly ChatDbContext _dbContext;
+        private readonly ICacheService _cacheService;
 
-        public ChatService(ChatDbContext dbContext)
+        public ChatService(ChatDbContext dbContext, ICacheService cacheService)
         {
             _dbContext = dbContext;
+            _cacheService = cacheService;
         }
 
         public async Task<ChatMessage> GetChatMessageByIdAsync(int messageId)
@@ -44,8 +47,10 @@ namespace ChatSystem.Services.Services
                 Timestamp = DateTime.UtcNow,
             };
 
-            await _dbContext.ChatMessages.AddAsync(chatMessage);
-            await _dbContext.SaveChangesAsync();
+            _cacheService.AddToCollection(CacheConstants.MessageCacheKey, chatMessage);
+
+            //await _dbContext.ChatMessages.AddAsync(chatMessage);
+            //await _dbContext.SaveChangesAsync();
         }
     }
 }
