@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ChatSystem.Data.Models;
+using ChatSystem.ViewModels.ChatMessages;
 using ChatSystem.ViewModels.Users;
 
 namespace ShoppingList.Profiles
@@ -9,6 +10,8 @@ namespace ShoppingList.Profiles
         public MappingProfile()
         {
             CreateMap<ChatUser, ChatUserViewModel>();
+
+            CreateMap<ChatMessage, ChatMessageViewModel>();
         }
     }
 }

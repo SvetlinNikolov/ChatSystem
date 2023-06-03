@@ -40,7 +40,7 @@ namespace ChatSystem.Services.Services
             return Enumerable.Empty<ChatUserViewModel>();
         }
 
-        public async Task<ChatUserViewModel> GetByUsername(string username)
+        public async Task<ChatUserViewModel> GetUserByUsername(string username)
         {
             var user = await _dbContext.ChatUsers.FirstOrDefaultAsync(x => x.UserName == username);
 
@@ -67,6 +67,21 @@ namespace ChatSystem.Services.Services
         public string GetCurrentUserUsername()
         {
             return _httpContextAccessor.HttpContext.User.Identity.Name;
+        }
+
+
+        public async Task<string> GetUsernameByIdAsync(int userId)
+        {
+            var user = await GetUserByIdAsync(userId);
+
+            return user?.UserName;
+        }
+
+        public async Task<ChatUserViewModel> GetUserByIdAsync(int userId)
+        {
+            var user = await _dbContext.ChatUsers.FirstOrDefaultAsync(x => x.Id == userId);
+
+            return _mapper.Map<ChatUserViewModel>(user);
         }
     }
 }

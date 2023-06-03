@@ -1,7 +1,9 @@
-﻿using ChatSystem.Data;
+﻿using AutoMapper;
+using ChatSystem.Data;
 using ChatSystem.Data.Models;
 using ChatSystem.Services.Constants;
 using ChatSystem.Services.Services.Contracts;
+using ChatSystem.ViewModels.ChatMessages;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatSystem.Services.Services
@@ -10,21 +12,17 @@ namespace ChatSystem.Services.Services
     {
         private readonly ChatDbContext _dbContext;
         private readonly ICacheService _cacheService;
+        private readonly IConversationService _conversationService;
+        private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public ChatService(ChatDbContext dbContext, ICacheService cacheService)
+        public ChatService(ChatDbContext dbContext, ICacheService cacheService, IConversationService conversationService, IUserService userService, IMapper mapper)
         {
             _dbContext = dbContext;
             _cacheService = cacheService;
-        }
-
-        public async Task<ChatMessage> GetChatMessageByIdAsync(int messageId)
-        {
-            return await _dbContext.ChatMessages.FirstOrDefaultAsync(x => x.Id == messageId);
-        }
-
-        public async Task<IEnumerable<ChatMessage>> GetAllChatMessagesAsync()
-        {
-            return await _dbContext.ChatMessages.ToListAsync();
+            _conversationService = conversationService;
+            _userService = userService;
+            _mapper = mapper;
         }
 
         public async Task AddChatMessageAsync(int senderId, int conversationId, string messageContent)
@@ -48,9 +46,28 @@ namespace ChatSystem.Services.Services
             };
 
             _cacheService.AddToCollection(CacheConstants.MessageCacheKey, chatMessage);
+        }
 
-            //await _dbContext.ChatMessages.AddAsync(chatMessage);
-            //await _dbContext.SaveChangesAsync();
+        public async Task<IEnumerable<ChatMessageViewModel>> GetChatMessagesByUserIdsAsync(int userId, int skip, int take)
+        {
+            var currentUserId = _userService.GetCurrentUserId();
+
+            var conversation = await _conversationService.GetConversationAsync(userId, currentUserId);
+
+            if (conversation == null)
+            {
+                return default;
+            }
+
+            var messages = await _dbContext.ChatMessages
+                .Where(x => x.ConversationId == conversation.Id)
+                .OrderByDescending(m => m.Timestamp)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<ChatMessageViewModel>>(messages);
         }
     }
+
 }

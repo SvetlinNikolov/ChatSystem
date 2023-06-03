@@ -13,12 +13,10 @@ namespace ChatSystem.Services.Services
     public class ConversationService : IConversationService
     {
         private readonly ChatDbContext _dbContext;
-        private readonly IChatService _chatService;
 
-        public ConversationService(ChatDbContext dbContext, IChatService chatService)
+        public ConversationService(ChatDbContext dbContext)
         {
             _dbContext = dbContext;
-            _chatService = chatService;
         }
 
         public async Task<int> CreateConversationAsync(int firstUserId, int secondUserId)

@@ -7,10 +7,14 @@ namespace ChatSystem.Services.Services.Contracts
     {
         Task<IEnumerable<ChatUserViewModel>> GetAllUsersAsync();
 
-        Task<ChatUserViewModel> GetByUsername(string username);
+        Task<ChatUserViewModel> GetUserByUsername(string username);
 
         int GetCurrentUserId();
 
         string GetCurrentUserUsername();
+
+        Task<string> GetUsernameByIdAsync(int userId);
+
+        Task<ChatUserViewModel> GetUserByIdAsync(int userId);
     }
 }
