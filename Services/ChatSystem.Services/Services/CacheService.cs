@@ -18,9 +18,12 @@
 
         public T Get<T>(string key)
         {
-            if (!string.IsNullOrEmpty(key) && this.memoryCache.TryGetValue<ConcurrentDictionary<string, T>>(key, out var collection))
+            if (!string.IsNullOrEmpty(key) && this.memoryCache.TryGetValue<ConcurrentDictionary<string, IEnumerable<T>>>(key, out var collection))
             {
-                return collection[key];
+                if (collection.TryGetValue(key, out var enumerable))
+                {
+                    return enumerable.FirstOrDefault();
+                }
             }
 
             return default(T);
@@ -56,24 +59,18 @@
             return removed;
         }
 
-        public void AddToCollection<T>(string key, T value)
+        public void AddToCollection<T>(string key, Action<T> updateAction) where T : class, new()
         {
-            var collection = this.memoryCache.GetOrCreate(key, cacheEntry =>
+            var item = this.memoryCache.GetOrCreate(key, cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = CACHING_TIME;
-                return new ConcurrentDictionary<string, IEnumerable<T>>();
+                return new T();
             });
 
-            if (collection.TryGetValue(key, out var enumerable))
-            {
-                enumerable = enumerable.Append(value);
-                collection[key] = enumerable;
-            }
-            else
-            {
-                enumerable = new List<T> { value };
-                collection.TryAdd(key, enumerable);
-            }
+            updateAction(item);
+
+            this.memoryCache.Set(key, item, CACHING_TIME);
         }
+
     }
 }

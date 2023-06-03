@@ -1,15 +1,13 @@
-﻿namespace ChatSystem.Services.Services.Contracts
+﻿using System;
+
+namespace ChatSystem.Services.Services.Contracts
 {
     public interface ICacheService
     {
-        public T Get<T>(string key);
-
-        public bool TryGet<T>(string key, out T value);
-
-        public void SetOrUpdate<T>(string key, T value);
-
-        public bool RemoveFromCache<T>(string key);
-
-        public void AddToCollection<T>(string key, T value);
+        T Get<T>(string key);
+        bool TryGet<T>(string key, out T value);
+        void SetOrUpdate<T>(string key, T value);
+        bool RemoveFromCache<T>(string key);
+        void AddToCollection<T>(string key, T value);
     }
 }

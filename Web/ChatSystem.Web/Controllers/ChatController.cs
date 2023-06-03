@@ -1,5 +1,6 @@
 ﻿using ChatSystem.Services.Services;
 using ChatSystem.Services.Services.Contracts;
+using ChatSystem.ViewModels.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
