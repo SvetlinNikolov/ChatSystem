@@ -7,7 +7,6 @@ using ChatSystem.Services.Services.Contracts;
 using ChatSystem.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ShishaProject.Common.Caching;
 
 var builder = WebApplication.CreateBuilder(args);
 

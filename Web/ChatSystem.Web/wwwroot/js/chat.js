@@ -44,6 +44,9 @@
         $(".selected-user .name").text(selectedUsername);
         console.log("Selected user: " + selectedUsername + ", ID: " + selectedUserId);
 
+        // Clear the chat box
+        $(".chat-box").html('');
+
         if (selectedUsername) {
             $("#messageInput").prop("disabled", false);
             $("#sendMessageBtn").prop("disabled", false);

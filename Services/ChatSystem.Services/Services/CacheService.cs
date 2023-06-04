@@ -1,76 +1,63 @@
-﻿namespace ShishaProject.Common.Caching
+﻿using System;
+using Microsoft.Extensions.Caching.Memory;
+using ChatSystem.Services.Constants;
+using ChatSystem.Services.Services.Contracts;
+
+public class CacheService : ICacheService
 {
-    using System;
-    using System.Collections.Concurrent;
-    using ChatSystem.Services.Constants;
-    using ChatSystem.Services.Services.Contracts;
-    using Microsoft.Extensions.Caching.Memory;
+    private readonly IMemoryCache _memoryCache;
+    private readonly TimeSpan _cachingTime;
 
-    public class CacheService : ICacheService
+    public CacheService(IMemoryCache memoryCache)
     {
-        private readonly IMemoryCache memoryCache;
-        private readonly TimeSpan CACHING_TIME = CacheConstants.GlobalCachingTime;
+        _memoryCache = memoryCache;
+        _cachingTime = CacheConstants.GlobalCachingTime;
+    }
 
-        public CacheService(IMemoryCache memoryCache)
+    public T Get<T>(string key)
+    {
+        return _memoryCache.Get<T>(key);
+    }
+
+    public bool TryGet<T>(string key, out T value)
+    {
+        return _memoryCache.TryGetValue(key, out value);
+    }
+
+    public void SetOrUpdate<T>(string key, T value)
+    {
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cachingTime);
+
+        _memoryCache.Set(key, value, cacheEntryOptions);
+    }
+
+    public void RemoveFromCache(string key)
+    {
+        _memoryCache.Remove(key);
+    }
+
+    public T GetOrCreate<T>(string key, Func<T> createFunc)
+    {
+        if (_memoryCache.TryGetValue(key, out T value))
         {
-            this.memoryCache = memoryCache;
+            return value;
         }
 
-        public T Get<T>(string key)
+        var createdValue = createFunc();
+        SetOrUpdate(key, createdValue);
+
+        return createdValue;
+    }
+
+    public void UpdateCache<T>(string key, T value)
+    {
+        if (_memoryCache.TryGetValue(key, out T existingValue))
         {
-            if (!string.IsNullOrEmpty(key) && this.memoryCache.TryGetValue<ConcurrentDictionary<string, IEnumerable<T>>>(key, out var collection))
-            {
-                if (collection.TryGetValue(key, out var enumerable))
-                {
-                    return enumerable.FirstOrDefault();
-                }
-            }
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(_cachingTime);
 
-            return default(T);
+            _memoryCache.Set(key, value, cacheEntryOptions);
         }
-
-        public bool TryGet<T>(string key, out T value)
-        {
-            value = this.Get<T>(key);
-
-            return value != null && !value.Equals(default(T));
-        }
-
-        public void SetOrUpdate<T>(string key, T value)
-        {
-            var collection = this.memoryCache.GetOrCreate(key, cacheEntry =>
-            {
-                cacheEntry.AbsoluteExpirationRelativeToNow = CACHING_TIME;
-                return new ConcurrentDictionary<string, T>();
-            });
-
-            collection.AddOrUpdate(key, value, (oldkey, oldvalue) => value);
-        }
-
-        public bool RemoveFromCache<T>(string key)
-        {
-            var removed = false;
-
-            if (!string.IsNullOrEmpty(key) && this.memoryCache.TryGetValue<ConcurrentDictionary<string, T>>(key, out var collection))
-            {
-                removed = collection.TryRemove(key, out _);
-            }
-
-            return removed;
-        }
-
-        public void AddToCollection<T>(string key, Action<T> updateAction) where T : class, new()
-        {
-            var item = this.memoryCache.GetOrCreate(key, cacheEntry =>
-            {
-                cacheEntry.AbsoluteExpirationRelativeToNow = CACHING_TIME;
-                return new T();
-            });
-
-            updateAction(item);
-
-            this.memoryCache.Set(key, item, CACHING_TIME);
-        }
-
     }
 }

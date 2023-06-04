@@ -6,6 +6,8 @@ using ChatSystem.Services.Services.Contracts;
 using ChatSystem.ViewModels.Cache;
 using ChatSystem.ViewModels.ChatMessages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ChatSystem.Services.Services
 {
@@ -46,10 +48,8 @@ namespace ChatSystem.Services.Services
                 Timestamp = DateTime.UtcNow,
             };
 
-            var messagesCollection = _cacheService.Get<ChatMessagesCacheObject>(CacheConstants.MessageCacheKey);
-
-            if (messagesCollection != null && messagesCollection.Messages.Any())
-                messagesCollection.Messages.Append(chatMessage);
+            await _dbContext.AddAsync(chatMessage);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<ChatMessageViewModel>> GetChatMessagesByUserIdsAsync(int userId, int skip, int take)
@@ -60,7 +60,7 @@ namespace ChatSystem.Services.Services
 
             if (conversation == null)
             {
-                return default;
+                return Enumerable.Empty<ChatMessageViewModel>();
             }
 
             var messages = await _dbContext.ChatMessages
@@ -70,12 +70,8 @@ namespace ChatSystem.Services.Services
                 .Take(take)
                 .ToListAsync();
 
-            var messagesCollection = _cacheService.Get<ChatMessagesCacheObject>(CacheConstants.MessageCacheKey);
-
-            if (messagesCollection != null && messagesCollection.Messages.Any())
-                messages.InsertRange(0, messagesCollection.Messages);
-
             return _mapper.Map<IEnumerable<ChatMessageViewModel>>(messages);
         }
+
     }
 }

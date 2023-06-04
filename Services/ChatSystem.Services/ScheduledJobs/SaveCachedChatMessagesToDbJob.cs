@@ -1,82 +1,57 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using ChatSystem.Data.Models;
+using ChatSystem.Data;
 using ChatSystem.Services.Constants;
 using ChatSystem.Services.Services.Contracts;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ChatSystem.ViewModels.Cache;
 
-namespace ChatSystem.Common.Caching
+public class SaveCachedChatMessagesToDbJob : BackgroundService
 {
-    public class CacheService : ICacheService
+    private readonly ILogger<SaveCachedChatMessagesToDbJob> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public SaveCachedChatMessagesToDbJob(
+        ILogger<SaveCachedChatMessagesToDbJob> logger,
+        IServiceScopeFactory scopeFactory)
     {
-        private readonly IMemoryCache memoryCache;
-        private readonly TimeSpan CACHING_TIME = CacheConstants.GlobalCachingTime;
+        _logger = logger;
+        _scopeFactory = scopeFactory;
+    }
 
-        public CacheService(IMemoryCache memoryCache)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            this.memoryCache = memoryCache;
-        }
-
-        public T Get<T>(string key)
-        {
-            if (!string.IsNullOrEmpty(key) && this.memoryCache.TryGetValue<ConcurrentDictionary<string, object>>(key, out var collection))
+            using (var scope = _scopeFactory.CreateScope())
             {
-                if (collection.TryGetValue(key, out var value))
+                var serviceProvider = scope.ServiceProvider;
+                var dbContext = serviceProvider.GetRequiredService<ChatDbContext>();
+                var cacheService = serviceProvider.GetRequiredService<ICacheService>();
+
+                try
                 {
-                    return (T)value;
+                    // Retrieve cached messages from the cache
+                    var messages = cacheService.Get<ChatMessagesCacheObject>(CacheConstants.MessageCacheKey)?.Messages;
+
+                    if (messages != null && messages.Any())
+                    {
+                        await dbContext.ChatMessages.AddRangeAsync(messages);
+                        await dbContext.SaveChangesAsync(stoppingToken);
+
+                        cacheService.RemoveFromCache(CacheConstants.MessageCacheKey);
+                        _logger.LogInformation("Cached messages saved to the database at: {time}", DateTimeOffset.Now);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred during job execution.");
                 }
             }
 
-            return default(T);
-        }
-
-        public bool TryGet<T>(string key, out T value)
-        {
-            value = this.Get<T>(key);
-
-            return value != null && !value.Equals(default(T));
-        }
-
-        public void SetOrUpdate<T>(string key, T value)
-        {
-            var collection = this.memoryCache.GetOrCreate<ConcurrentDictionary<string, object>>(key, cacheEntry =>
-            {
-                cacheEntry.AbsoluteExpirationRelativeToNow = CACHING_TIME;
-                return new ConcurrentDictionary<string, object>();
-            });
-
-            collection.AddOrUpdate(key, value, (oldKey, oldValue) => value);
-        }
-
-        public bool RemoveFromCache<T>(string key)
-        {
-            var removed = false;
-
-            if (!string.IsNullOrEmpty(key) && this.memoryCache.TryGetValue<ConcurrentDictionary<string, object>>(key, out var collection))
-            {
-                removed = collection.TryRemove(key, out _);
-            }
-
-            return removed;
-        }
-
-        public void AddToCollection<T>(string key, T value)
-        {
-            var collection = this.memoryCache.GetOrCreate<ConcurrentDictionary<string, List<T>>>(key, cacheEntry =>
-            {
-                cacheEntry.AbsoluteExpirationRelativeToNow = CACHING_TIME;
-                return new ConcurrentDictionary<string, List<T>>();
-            });
-
-            if (collection.TryGetValue(key, out var list))
-            {
-                list.Add(value);
-            }
-            else
-            {
-                list = new List<T> { value };
-                collection.TryAdd(key, list);
-            }
+            // Wait for a specified interval before running the task again
+            await Task.Delay(ScheduledJobsConstants.SaveCachedChatMessagesToDbJobInterval, stoppingToken);
         }
     }
 }
