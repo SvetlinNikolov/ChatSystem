@@ -6,8 +6,9 @@
         bool TryGet<T>(string key, out T value);
         void SetOrUpdate<T>(string key, T value);
         void RemoveFromCache(string key);
-        public T GetOrCreate<T>(string key, Func<T> createFunc);
-
+        T GetOrCreate<T>(string key, Func<T> createFunc);
         void UpdateCache<T>(string key, T value);
+        IEnumerable<KeyValuePair<string, T>> GetAllCacheEntriesWithPrefix<T>(string prefix);
+        void RemoveAllCacheEntriesWithPrefix(string prefix);
     }
 }

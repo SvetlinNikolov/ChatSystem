@@ -11,12 +11,10 @@
         var isSender = senderUsername === selectedUsername;
 
         var messageItem = $("<li>").addClass(isSender ? "chat-right" : "chat-left").append(
-            $("<div>").addClass("chat-hour").text(formatTime(new Date()) + " ").append(
-                $("<span>").addClass("fa fa-check-circle")
-            ),
+            $("<div>").addClass("chat-hour").text(formatTime(new Date())),
             $("<div>").addClass("chat-text").text(message),
             $("<div>").addClass("chat-avatar").append(
-                $("<img>").attr("src", "https://www.bootdey.com/img/Content/avatar/avatar3.png").attr("alt", "Retail Admin"),
+                $("<img>").attr("src", "https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png").attr("alt", "Retail Admin"),
                 $("<div>").addClass("chat-name").text(senderUsername)
             )
         );
@@ -80,12 +78,10 @@
                         // Create a message item for the sender and append it to the chat box
                         var recipientUsername = $(".selected-user .name").text(); // Get the recipient's username
                         var messageItem = $("<li>").addClass("chat-right").append(
-                            $("<div>").addClass("chat-hour").text(formatTime(new Date()) + " ").append(
-                                $("<span>").addClass("fa fa-check-circle")
-                            ),
+                            $("<div>").addClass("chat-hour").text(formatTime(new Date())),
                             $("<div>").addClass("chat-text").text(message),
                             $("<div>").addClass("chat-avatar").append(
-                                $("<img>").attr("src", "https://www.bootdey.com/img/Content/avatar/avatar3.png").attr("alt", "Retail Admin"),
+                                $("<img>").attr("src", "https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png").attr("alt", "Retail Admin"),
                                 $("<div>").addClass("chat-name").text(recipientUsername)
                             )
                         );
@@ -117,12 +113,10 @@
                 // Add the retrieved messages to the chat box
                 data.forEach(function (message) {
                     var messageItem = $("<li>").addClass("chat-left").append(
-                        $("<div>").addClass("chat-hour").text(formatTime(new Date(message.timestamp)) + " ").append(
-                            $("<span>").addClass("fa fa-check-circle")
-                        ),
+                        $("<div>").addClass("chat-hour").text(formatTime(new Date(message.timestamp))),
                         $("<div>").addClass("chat-text").text(message.content),
                         $("<div>").addClass("chat-avatar").append(
-                            $("<img>").attr("src", "https://www.bootdey.com/img/Content/avatar/avatar3.png").attr("alt", "Retail Admin"),
+                            $("<img>").attr("src", "https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png").attr("alt", "Retail Admin"),
                             $("<div>").addClass("chat-name").text(message.senderUsername)
                         )
                     );

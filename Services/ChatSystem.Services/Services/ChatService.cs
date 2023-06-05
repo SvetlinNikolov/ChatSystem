@@ -6,8 +6,6 @@ using ChatSystem.Services.Services.Contracts;
 using ChatSystem.ViewModels.Cache;
 using ChatSystem.ViewModels.ChatMessages;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ChatSystem.Services.Services
 {
@@ -48,8 +46,35 @@ namespace ChatSystem.Services.Services
                 Timestamp = DateTime.UtcNow,
             };
 
-            await _dbContext.AddAsync(chatMessage);
-            await _dbContext.SaveChangesAsync();
+            var cacheKey = $"{CacheConstants.MessageCacheKey}_{conversationId}";
+
+            if (!_cacheService.TryGet(cacheKey, out List<ChatMessage> cachedMessages))
+            {
+                // Collection doesn't exist in cache, create a new one
+                cachedMessages = new List<ChatMessage>();
+                _cacheService.SetOrUpdate(cacheKey, cachedMessages);
+            }
+
+            // Add the new chat message to the collection
+            cachedMessages.Add(chatMessage);
+
+            if (cachedMessages.Count >= CacheConstants.MaximumAllowedMessagesInCache)
+            {
+                var lastSavedMessageTimestamp = await GetLastSavedMessageTimestamp(conversationId);
+
+                if (cachedMessages.Any(msg => msg.Timestamp > lastSavedMessageTimestamp))
+                {
+                    // Send a request to the database to save the collection
+                    await _dbContext.AddRangeAsync(cachedMessages);
+                    await _dbContext.SaveChangesAsync();
+
+                    // Clear the cache since the messages are saved in the database
+                    _cacheService.RemoveFromCache(cacheKey);
+
+                    // Reset the chatMessages list
+                    cachedMessages.Clear();
+                }
+            }
         }
 
         public async Task<IEnumerable<ChatMessageViewModel>> GetChatMessagesByUserIdsAsync(int userId, int skip, int take)
@@ -63,15 +88,60 @@ namespace ChatSystem.Services.Services
                 return Enumerable.Empty<ChatMessageViewModel>();
             }
 
-            var messages = await _dbContext.ChatMessages
-                .Where(x => x.ConversationId == conversation.Id)
-                .OrderByDescending(m => m.Timestamp)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync();
+            var cacheKey = $"{CacheConstants.MessageCacheKey}_{conversation.Id}";
 
-            return _mapper.Map<IEnumerable<ChatMessageViewModel>>(messages);
+            _cacheService.TryGet(cacheKey, out List<ChatMessage> cachedChatMessages);
+
+            var chatMessagesQuery = _dbContext.ChatMessages
+                .Where(x => x.ConversationId == conversation.Id)
+                .OrderByDescending(m => m.Timestamp);
+
+            if (cachedChatMessages != null && cachedChatMessages.Any())
+            {
+                var cachedMessageCount = cachedChatMessages.Count;
+
+                if (skip < cachedMessageCount)
+                {
+                    var cachedMessagesToReturn = cachedChatMessages
+                       .Skip(skip)
+                       .Take(take)
+                       .OrderByDescending(x => x.Timestamp)
+                       .ToList();
+
+                    if (cachedMessagesToReturn.Count == take)
+                    {
+                        return _mapper.Map<IEnumerable<ChatMessageViewModel>>(cachedMessagesToReturn);
+                    }
+
+                    skip = 0;
+                    take -= cachedMessagesToReturn.Count;
+
+                    var dbChatMessages = await chatMessagesQuery.Skip(skip).Take(take).ToListAsync();
+
+                    var allMessages = cachedMessagesToReturn
+                        .Concat(dbChatMessages)
+                        .ToList();
+
+                    return _mapper.Map<IEnumerable<ChatMessageViewModel>>(allMessages);
+                }
+                else
+                {
+                    skip -= cachedMessageCount;
+                }
+            }
+
+            var dbMessages = await chatMessagesQuery.Skip(skip).Take(take).ToListAsync();
+            return _mapper.Map<IEnumerable<ChatMessageViewModel>>(dbMessages);
         }
 
+        private async Task<DateTime> GetLastSavedMessageTimestamp(int conversationId)
+        {
+            var lastSavedMessage = await _dbContext.ChatMessages
+                .Where(cm => cm.ConversationId == conversationId)
+                .OrderByDescending(cm => cm.Timestamp)
+                .FirstOrDefaultAsync();
+
+            return lastSavedMessage?.Timestamp ?? DateTime.MinValue;
+        }
     }
 }

@@ -33,14 +33,16 @@ public class SaveCachedChatMessagesToDbJob : BackgroundService
                 try
                 {
                     // Retrieve cached messages from the cache
-                    var messages = cacheService.Get<ChatMessagesCacheObject>(CacheConstants.MessageCacheKey)?.Messages;
+                    var messages = cacheService.
+                        GetAllCacheEntriesWithPrefix<IEnumerable<ChatMessage>>(CacheConstants.MessageCacheKey)
+                        .SelectMany(x => x.Value);
 
                     if (messages != null && messages.Any())
                     {
                         await dbContext.ChatMessages.AddRangeAsync(messages);
                         await dbContext.SaveChangesAsync(stoppingToken);
 
-                        cacheService.RemoveFromCache(CacheConstants.MessageCacheKey);
+                        cacheService.RemoveAllCacheEntriesWithPrefix(CacheConstants.MessageCacheKey);
                         _logger.LogInformation("Cached messages saved to the database at: {time}", DateTimeOffset.Now);
                     }
                 }
