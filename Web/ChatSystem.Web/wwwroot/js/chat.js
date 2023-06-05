@@ -19,9 +19,17 @@
             )
         );
 
-        // Append the message to the chat box
+        // Get the chat box element
         var chatBox = $(".chat-box");
-        chatBox.prepend(messageItem);
+
+        // Check if there are existing messages in the chat box
+        if (chatBox.children().length > 0) {
+            // Insert the new message after the last existing message
+            chatBox.children().last().after(messageItem);
+        } else {
+            // Append the new message to the chat box if it's the first message
+            chatBox.append(messageItem);
+        }
     });
 
     // Start the connection
