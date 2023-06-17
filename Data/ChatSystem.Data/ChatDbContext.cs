@@ -34,5 +34,8 @@ namespace ChatSystem.Data
         public DbSet<ChatMessage> ChatMessages { get; set; }
 
         public DbSet<ChatUser> ChatUsers { get; set; }
+
+        public DbSet<ChatRoom> ChatRooms { get; set; }
+
     }
 }
